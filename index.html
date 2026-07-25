@@ -50,6 +50,10 @@
   .copybtn svg{width:12px;height:12px;}
   .excerpt{font-size:13.5px;line-height:1.7;padding:8px 10px;border-left:2px solid var(--accent);background:rgba(255,103,0,.06);border-radius:0 6px 6px 0;margin-bottom:8px;color:var(--ink-text);}
   .excerpt a{color:var(--blue);text-decoration:underline;word-break:break-all;}
+  .morebtn{display:block;background:none;border:1px dashed var(--blue);color:var(--blue);height:auto;width:auto;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;box-shadow:none;margin-top:4px;}
+  .morebtn:hover{background:rgba(58,110,165,.08);}
+  .morebtn:active{transform:none;box-shadow:none;}
+  .morebtn-main{margin:8px auto 0;text-align:center;}
   .count{font-size:11px;color:var(--accent-dark);font-family:'IBM Plex Mono',monospace;}
   .disclaimer{font-size:10.5px;color:var(--muted);text-align:center;padding:0 16px 20px;}
 
@@ -193,11 +197,24 @@
     const qGrams = ngramSet(q, n);
     if (qGrams.size === 0) return [];
 
-    const minScore = q.replace(/\s+/g, '').length <= 6 ? 1 : 2; // เกณฑ์ขั้นต่ำกันผลลัพธ์ไม่เกี่ยวข้องหลุดเข้ามา
+    // เกณฑ์คะแนนขั้นต่ำ ปรับตามสัดส่วนความยาวคำถาม กันท่อนข้อความสั้น ๆ หลุดเข้ามาเยอะเกินไป
+    const minScore = Math.max(2, Math.ceil(qGrams.size * 0.25));
 
     const results = [];
     docs.forEach(doc => {
-      const paragraphs = doc.text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+      // รวมบรรทัดสั้น ๆ ที่ติดกัน (ไม่มีบรรทัดว่างคั่น) ให้เป็นย่อหน้าเดียว ป้องกันการตัดย่อหน้าถี่เกินไป
+      const rawParagraphs = doc.text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+      const paragraphs = [];
+      let buffer = '';
+      rawParagraphs.forEach(p => {
+        buffer = buffer ? buffer + '\n' + p : p;
+        if (buffer.replace(/\s+/g, '').length >= 40) {
+          paragraphs.push(buffer);
+          buffer = '';
+        }
+      });
+      if (buffer) paragraphs.push(buffer);
+
       const scored = paragraphs
         .map(p => ({ text: p, score: overlapScore(qGrams, ngramSet(p, n)) }))
         .filter(p => p.score >= minScore)
@@ -207,14 +224,41 @@
         results.push({
           name: doc.name,
           url: doc.url,
-          excerpts: scored.slice(0, 5).map(p => p.text),
+          excerpts: scored.slice(0, 12).map(p => p.text), // เพดานกันเอกสารเดียวมีย่อหน้ามากเกินไป
           matchCount: scored.reduce((sum, p) => sum + p.score, 0)
         });
       }
     });
 
     results.sort((a, b) => b.matchCount - a.matchCount);
-    return results.slice(0, 8);
+    return results; // ไม่ตัดจำนวนเอกสารแล้ว ให้ renderResults จัดการแสดงทีละส่วนแทน
+  }
+
+  const INITIAL_DOCS = 4;
+  const DOCS_STEP = 4;
+  const INITIAL_EXCERPTS = 3;
+
+  function renderCard(r) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const displayName = r.name.replace(/\.(txt|md|xlsx|xls)$/i, '');
+
+    function draw(shownCount) {
+      let html = `<h3>${escapeHtml(displayName)}</h3>` +
+        `<div class="count">คะแนนความเกี่ยวข้อง ${r.matchCount}</div>`;
+      r.excerpts.slice(0, shownCount).forEach(ex => {
+        html += `<div class="excerpt">${linkify(escapeHtml(ex))}</div>`;
+      });
+      if (r.excerpts.length > shownCount) {
+        html += `<button type="button" class="morebtn" data-more-excerpt>แสดงย่อหน้าเพิ่มเติมในไฟล์นี้ (+${r.excerpts.length - shownCount})</button>`;
+      }
+      card.innerHTML = html;
+      const moreBtn = card.querySelector('[data-more-excerpt]');
+      if (moreBtn) moreBtn.addEventListener('click', () => draw(r.excerpts.length));
+    }
+
+    draw(INITIAL_EXCERPTS);
+    return card;
   }
 
   function renderResults(list) {
@@ -223,16 +267,21 @@
       resultsEl.innerHTML = '<div class="empty">ไม่พบคำที่ค้นหาในเอกสารความรู้ ลองใช้คำอื่น หรือเพิ่มไฟล์ความรู้ที่เกี่ยวข้องเข้า repository</div>';
       return;
     }
-    list.forEach(r => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      const displayName = r.name.replace(/\.(txt|md|xlsx|xls)$/i, '');
-      let html = `<h3>${escapeHtml(displayName)}</h3>` +
-        `<div class="count">คะแนนความเกี่ยวข้อง ${r.matchCount}</div>`;
-      r.excerpts.forEach(ex => { html += `<div class="excerpt">${linkify(escapeHtml(ex))}</div>`; });
-      card.innerHTML = html;
-      resultsEl.appendChild(card);
-    });
+
+    function draw(shownCount) {
+      resultsEl.innerHTML = '';
+      list.slice(0, shownCount).forEach(r => resultsEl.appendChild(renderCard(r)));
+      if (list.length > shownCount) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'morebtn morebtn-main';
+        btn.textContent = `แสดงผลลัพธ์เพิ่มเติม (+${Math.min(DOCS_STEP, list.length - shownCount)})`;
+        btn.addEventListener('click', () => draw(shownCount + DOCS_STEP));
+        resultsEl.appendChild(btn);
+      }
+    }
+
+    draw(INITIAL_DOCS);
   }
 
   function handleSearch() {
