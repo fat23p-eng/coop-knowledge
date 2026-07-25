@@ -3,45 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ค้นความรู้กฎหมายสหกรณ์และแรงงาน</title>
+<title>ผู้ช่วยค้นหากฎหมายสหกรณ์และเรื่องหารืออัจฉริยะ</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0F1E33">
+<meta name="theme-color" content="#004E98">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="กฎหมายสหกรณ์">
+<meta name="apple-mobile-web-app-title" content="กฎหมายสหกรณ์อัจฉริยะ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;700&family=Noto+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <style>
   :root{
-    --ink:#0F1E33; --ink-2:#16294A; --paper:#EFE7D2; --gold:#B08D57; --gold-dark:#7C5F35;
-    --pine:#3B5B45; --ink-text:#241C0F; --paper-text:#F3ECD9; --muted:#9AA6BE;
+    --bg:#EBEBEB; --bg-2:#004E98; --card:#FFFFFF; --accent:#FF6700; --accent-dark:#CC5200;
+    --blue:#3A6EA5; --ink-text:#1A2027; --muted:#6B7280; --border:#C0C0C0; --header-text:#F5F7FA;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;min-height:100vh;background:var(--ink);font-family:'Noto Sans Thai',sans-serif;color:var(--paper-text);}
-  .topbar{display:flex;align-items:center;gap:12px;padding:20px;background:var(--ink-2);border-bottom:1px solid rgba(176,141,87,.35);}
-  .seal{width:38px;height:38px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;}
+  html,body{margin:0;min-height:100vh;background:var(--bg);font-family:'Noto Sans Thai',sans-serif;color:var(--ink-text);}
+  .topbar{display:flex;align-items:center;gap:12px;padding:20px;background:var(--bg-2);border-bottom:1px solid #003b73;}
+  .seal{width:38px;height:38px;border-radius:50%;border:2px solid var(--header-text);display:flex;align-items:center;justify-content:center;color:var(--header-text);flex-shrink:0;}
   .seal svg{width:20px;height:20px;}
-  .topbar h1{font-family:'Noto Serif Thai',serif;font-size:18px;margin:0;}
-  .topbar p{margin:2px 0 0;font-size:11.5px;color:var(--muted);}
-  .searchrow{display:flex;gap:8px;padding:18px 20px;background:var(--ink-2);border-bottom:1px solid rgba(176,141,87,.25);max-width:760px;margin:0 auto;}
-  input[type=text]{flex:1;border-radius:8px;border:1px solid rgba(176,141,87,.35);background:rgba(239,231,210,.06);color:var(--paper-text);padding:11px 12px;font-family:inherit;font-size:14.5px;}
-  input[type=text]:focus{outline:none;border-color:var(--gold);}
-  button{display:flex;align-items:center;gap:7px;height:44px;background:var(--gold);color:#1A1408;border:none;border-radius:8px;padding:0 20px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;box-shadow:0 2px 0 var(--gold-dark);transition:transform .08s,box-shadow .08s,background .15s;flex-shrink:0;}
+  .topbar h1{font-family:'Noto Serif Thai',serif;font-size:18px;margin:0;color:var(--header-text);}
+  .topbar p{margin:2px 0 0;font-size:11.5px;color:#C9D6E5;}
+  .searchrow{display:flex;gap:8px;padding:18px 20px;background:var(--bg-2);border-bottom:1px solid #003b73;max-width:760px;margin:0 auto;}
+  input[type=text]{flex:1;border-radius:8px;border:1.5px solid #C0C0C0;background:#FFFFFF;color:var(--ink-text);padding:11px 12px;font-family:inherit;font-size:14.5px;}
+  input[type=text]::placeholder{color:#9AA1AB;}
+  input[type=text]:focus{outline:none;border-color:var(--accent);}
+  button{display:flex;align-items:center;gap:7px;height:44px;background:var(--accent);color:#FFFFFF;border:none;border-radius:8px;padding:0 20px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;box-shadow:0 2px 0 var(--accent-dark);transition:transform .08s,box-shadow .08s,background .15s;flex-shrink:0;}
   button svg{width:16px;height:16px;flex-shrink:0;}
-  button:hover:not(:disabled){background:#C29D66;}
-  button:active:not(:disabled){transform:translateY(2px);box-shadow:0 0 0 var(--gold-dark);}
-  button:disabled{opacity:.7;box-shadow:none;cursor:default;}
+  button:hover:not(:disabled){background:#FF7D26;}
+  button:active:not(:disabled){transform:translateY(2px);box-shadow:0 0 0 var(--accent-dark);}
+  button:disabled{opacity:.6;box-shadow:none;cursor:default;}
   .results{padding:20px;max-width:760px;margin:0 auto;}
   .empty{margin:60px auto;text-align:center;color:var(--muted);font-size:13.5px;max-width:380px;line-height:1.8;}
   .status{text-align:center;color:var(--muted);font-size:12px;padding:8px 20px;}
-  .card{background:var(--paper);color:var(--ink-text);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
-  .card h3{font-family:'Noto Serif Thai',serif;font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
-  .card h3 a{color:var(--gold-dark);font-size:12px;font-family:'Noto Sans Thai',sans-serif;text-decoration:none;font-weight:600;white-space:nowrap;}
-  .excerpt{font-size:13.5px;line-height:1.7;padding:8px 10px;border-left:2px solid var(--gold-dark);background:rgba(176,141,87,.08);border-radius:0 6px 6px 0;margin-bottom:8px;}
-  .count{font-size:11px;color:var(--gold-dark);font-family:'IBM Plex Mono',monospace;}
+  .card{background:var(--card);color:var(--ink-text);border-radius:10px;padding:16px 18px;margin-bottom:14px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(26,32,39,.08);}
+  .card h3{font-family:'Noto Serif Thai',serif;font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--ink-text);}
+  .card h3 a{display:inline-flex;align-items:center;gap:5px;color:var(--blue);font-size:11.5px;font-family:'Noto Sans Thai',sans-serif;text-decoration:none;font-weight:600;white-space:nowrap;border:1px solid var(--blue);padding:4px 9px;border-radius:6px;}
+  .card h3 a:hover{background:rgba(58,110,165,.10);}
+  .card h3 a svg{width:12px;height:12px;flex-shrink:0;}
+  .linkgroup{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .copybtn{display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--blue);color:var(--blue);height:auto;padding:4px 9px;border-radius:6px;font-size:11.5px;font-weight:600;box-shadow:none;}
+  .copybtn:hover{background:rgba(58,110,165,.10);}
+  .copybtn:active{transform:none;box-shadow:none;}
+  .copybtn svg{width:12px;height:12px;}
+  .excerpt{font-size:13.5px;line-height:1.7;padding:8px 10px;border-left:2px solid var(--accent);background:rgba(255,103,0,.06);border-radius:0 6px 6px 0;margin-bottom:8px;color:var(--ink-text);}
+  .count{font-size:11px;color:var(--accent-dark);font-family:'IBM Plex Mono',monospace;}
   .disclaimer{font-size:10.5px;color:var(--muted);text-align:center;padding:0 16px 20px;}
 
   @media (max-width:480px){
@@ -70,8 +78,8 @@
       </svg>
     </div>
     <div>
-      <h1>ค้นความรู้กฎหมายสหกรณ์ &amp; แรงงาน</h1>
-      <p>ค้นคำจากไฟล์ความรู้ใน GitHub repository โดยตรง</p>
+      <h1>ผู้ช่วยค้นหากฎหมายสหกรณ์และเรื่องหารืออัจฉริยะ</h1>
+      <p>ค้นหากฎหมายสหกรณ์ สรุปกฎหมายแรงงาน และหนังสือตอบเรื่องหารือเกี่ยวกับการดำเนินงานของสหกรณ์</p>
     </div>
   </div>
 
@@ -114,7 +122,7 @@
       const files = await listRes.json();
       const knowledgeFiles = files.filter(f => f.type === 'file' && /\.(txt|md|xlsx|xls)$/i.test(f.name));
 
-      statusEl.textContent = `กำลังโหลดไฟล์ความรู้ 0/${knowledgeFiles.length}...`;
+      statusEl.textContent = `กำลังเตรียมข้อมูล...`;
 
       let loaded = 0;
       for (const f of knowledgeFiles) {
@@ -143,10 +151,9 @@
           console.warn('โหลดไฟล์ไม่สำเร็จ: ' + f.name, fileErr);
         }
         loaded++;
-        statusEl.textContent = `กำลังโหลดไฟล์ความรู้ ${loaded}/${knowledgeFiles.length}...`;
       }
 
-      statusEl.textContent = `พร้อมค้นหา — โหลดเอกสารความรู้แล้ว ${docs.length} ไฟล์`;
+      statusEl.textContent = `พร้อมค้นหา`;
       knowledgeReady = true;
       resultsEl.innerHTML = '<div class="empty">พิมพ์คำสำคัญด้านบนแล้วกดค้นหา ระบบจะแสดงย่อหน้าจากไฟล์ความรู้ที่มีคำนั้นปรากฏอยู่ พร้อมลิงก์เปิดไฟล์ต้นฉบับใน GitHub</div>';
     } catch (err) {
@@ -154,16 +161,48 @@
     }
   }
 
+  // สร้างชุด n-gram (กลุ่มตัวอักษร n ตัวติดกัน) จากข้อความ โดยตัดช่องว่างออกก่อน
+  // วิธีนี้ไม่ต้องพึ่งการตัดคำด้วยช่องว่าง จึงใช้ได้ดีกับประโยคภาษาไทยที่พิมพ์ติดกันไม่มีช่องว่างคั่นคำ
+  function ngramSet(text, n) {
+    const clean = text.replace(/\s+/g, '');
+    const grams = new Set();
+    for (let i = 0; i <= clean.length - n; i++) {
+      grams.add(clean.slice(i, i + n));
+    }
+    return grams;
+  }
+
+  function overlapScore(aGrams, bGrams) {
+    let score = 0;
+    aGrams.forEach(g => { if (bGrams.has(g)) score++; });
+    return score;
+  }
+
   function searchDocs(question) {
-    const keywords = question.split(/\s+/).filter(w => w.length > 1);
-    if (keywords.length === 0) return [];
+    const q = question.trim();
+    if (q.length < 2) return [];
+
+    const n = q.replace(/\s+/g, '').length <= 6 ? 2 : 4; // คำถามสั้นใช้ n เล็กลง ป้องกันไม่มี n-gram ให้เทียบเลย
+    const qGrams = ngramSet(q, n);
+    if (qGrams.size === 0) return [];
+
+    const minScore = q.replace(/\s+/g, '').length <= 6 ? 1 : 2; // เกณฑ์ขั้นต่ำกันผลลัพธ์ไม่เกี่ยวข้องหลุดเข้ามา
 
     const results = [];
     docs.forEach(doc => {
       const paragraphs = doc.text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-      const matched = paragraphs.filter(p => keywords.some(kw => p.includes(kw)));
-      if (matched.length > 0) {
-        results.push({ name: doc.name, url: doc.url, excerpts: matched.slice(0, 5), matchCount: matched.length });
+      const scored = paragraphs
+        .map(p => ({ text: p, score: overlapScore(qGrams, ngramSet(p, n)) }))
+        .filter(p => p.score >= minScore)
+        .sort((a, b) => b.score - a.score);
+
+      if (scored.length > 0) {
+        results.push({
+          name: doc.name,
+          url: doc.url,
+          excerpts: scored.slice(0, 5).map(p => p.text),
+          matchCount: scored.reduce((sum, p) => sum + p.score, 0)
+        });
       }
     });
 
@@ -180,11 +219,31 @@
     list.forEach(r => {
       const card = document.createElement('div');
       card.className = 'card';
-      let html = `<h3>${escapeHtml(r.name)} <a href="${r.url}" target="_blank">เปิดไฟล์ต้นฉบับ</a></h3>` +
-        `<div class="count">พบคำที่ค้นหา ${r.matchCount} แห่ง</div>`;
+      let html = `<h3>${escapeHtml(r.name)}
+        <span class="linkgroup">
+          <button type="button" class="copybtn" data-url="${escapeHtml(r.url)}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            คัดลอกลิงก์
+          </button>
+        </span>
+      </h3>` +
+        `<div class="count">คะแนนความเกี่ยวข้อง ${r.matchCount}</div>`;
       r.excerpts.forEach(ex => { html += `<div class="excerpt">${escapeHtml(ex)}</div>`; });
       card.innerHTML = html;
       resultsEl.appendChild(card);
+    });
+
+    resultsEl.querySelectorAll('.copybtn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(btn.dataset.url);
+          const original = btn.innerHTML;
+          btn.innerHTML = 'คัดลอกแล้ว ✓';
+          setTimeout(() => { btn.innerHTML = original; }, 1500);
+        } catch {
+          prompt('คัดลอกลิงก์นี้ด้วยตนเอง:', btn.dataset.url);
+        }
+      });
     });
   }
 

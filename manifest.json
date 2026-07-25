@@ -1,10 +1,10 @@
 {
-  "name": "ค้นความรู้กฎหมายสหกรณ์และแรงงาน",
-  "short_name": "กฎหมายสหกรณ์",
+  "name": "ผู้ช่วยค้นหากฎหมายสหกรณ์และเรื่องหารืออัจฉริยะ",
+  "short_name": "กฎหมายสหกรณ์อัจฉริยะ",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0F1E33",
-  "theme_color": "#0F1E33",
+  "background_color": "#EBEBEB",
+  "theme_color": "#004E98",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
