@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-title" content="กฎหมายสหกรณ์">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;700&family=Noto+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <style>
   :root{
     --ink:#0F1E33; --ink-2:#16294A; --paper:#EFE7D2; --gold:#B08D57; --gold-dark:#7C5F35;
@@ -89,8 +89,8 @@
 
 <script>
   // ==== ตั้งค่า 3 อย่างนี้ให้ตรงกับ GitHub repository ของคุณ ====
-  const GITHUB_OWNER = 'fat23p-eng';
-  const GITHUB_REPO = 'coop-knowledge';
+  const GITHUB_OWNER = 'ใส่ชื่อบัญชี-หรือองค์กร-GitHub';
+  const GITHUB_REPO = 'ใส่ชื่อ-repository';
   const KNOWLEDGE_PATH = 'knowledge'; // ชื่อโฟลเดอร์ใน repo ที่เก็บไฟล์ .txt, .md หรือ .xlsx ความรู้
   // ==========================================================
 
@@ -118,21 +118,29 @@
 
       let loaded = 0;
       for (const f of knowledgeFiles) {
-        if (/\.(xlsx|xls)$/i.test(f.name)) {
-          const buf = await (await fetch(f.download_url)).arrayBuffer();
-          const workbook = XLSX.read(buf, { type: 'array' });
-          const sheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-          const blocks = rows.map(row =>
-            Object.entries(row)
-              .filter(([, v]) => String(v).trim() !== '')
-              .map(([k, v]) => `${k}: ${v}`)
-              .join('\n')
-          ).filter(Boolean);
-          docs.push({ name: f.name, url: f.html_url, text: blocks.join('\n\n') });
-        } else {
-          const text = await (await fetch(f.download_url)).text();
-          docs.push({ name: f.name, url: f.html_url, text });
+        try {
+          if (/\.(xlsx|xls)$/i.test(f.name)) {
+            if (typeof XLSX === 'undefined') {
+              console.warn('ข้ามไฟล์ ' + f.name + ': ไลบรารีอ่าน Excel ยังโหลดไม่เสร็จหรือถูกบล็อก');
+            } else {
+              const buf = await (await fetch(f.download_url)).arrayBuffer();
+              const workbook = XLSX.read(buf, { type: 'array' });
+              const sheet = workbook.Sheets[workbook.SheetNames[0]];
+              const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+              const blocks = rows.map(row =>
+                Object.entries(row)
+                  .filter(([, v]) => String(v).trim() !== '')
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join('\n')
+              ).filter(Boolean);
+              docs.push({ name: f.name, url: f.html_url, text: blocks.join('\n\n') });
+            }
+          } else {
+            const text = await (await fetch(f.download_url)).text();
+            docs.push({ name: f.name, url: f.html_url, text });
+          }
+        } catch (fileErr) {
+          console.warn('โหลดไฟล์ไม่สำเร็จ: ' + f.name, fileErr);
         }
         loaded++;
         statusEl.textContent = `กำลังโหลดไฟล์ความรู้ ${loaded}/${knowledgeFiles.length}...`;
