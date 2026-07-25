@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ค้นความรู้กฎหมายสหกรณ์และแรงงาน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;700&family=Noto+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0F1E33; --ink-2:#16294A; --paper:#EFE7D2; --gold:#B08D57; --gold-dark:#7C5F35;
+    --pine:#3B5B45; --ink-text:#241C0F; --paper-text:#F3ECD9; --muted:#9AA6BE;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;min-height:100vh;background:var(--ink);font-family:'Noto Sans Thai',sans-serif;color:var(--paper-text);}
+  .topbar{display:flex;align-items:center;gap:12px;padding:20px;background:var(--ink-2);border-bottom:1px solid rgba(176,141,87,.35);}
+  .seal{width:38px;height:38px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;}
+  .seal svg{width:20px;height:20px;}
+  .topbar h1{font-family:'Noto Serif Thai',serif;font-size:18px;margin:0;}
+  .topbar p{margin:2px 0 0;font-size:11.5px;color:var(--muted);}
+  .searchrow{display:flex;gap:8px;padding:18px 20px;background:var(--ink-2);border-bottom:1px solid rgba(176,141,87,.25);max-width:760px;margin:0 auto;}
+  input[type=text]{flex:1;border-radius:8px;border:1px solid rgba(176,141,87,.35);background:rgba(239,231,210,.06);color:var(--paper-text);padding:11px 12px;font-family:inherit;font-size:14.5px;}
+  input[type=text]:focus{outline:none;border-color:var(--gold);}
+  button{background:var(--gold);color:#241C0F;border:none;border-radius:8px;padding:0 20px;font-weight:600;font-size:14px;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;}
+  button:disabled{opacity:.5;}
+  .results{padding:20px;max-width:760px;margin:0 auto;}
+  .empty{margin:60px auto;text-align:center;color:var(--muted);font-size:13.5px;max-width:380px;line-height:1.8;}
+  .status{text-align:center;color:var(--muted);font-size:12px;padding:8px 20px;}
+  .card{background:var(--paper);color:var(--ink-text);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+  .card h3{font-family:'Noto Serif Thai',serif;font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+  .card h3 a{color:var(--gold-dark);font-size:12px;font-family:'Noto Sans Thai',sans-serif;text-decoration:none;font-weight:600;white-space:nowrap;}
+  .excerpt{font-size:13.5px;line-height:1.7;padding:8px 10px;border-left:2px solid var(--gold-dark);background:rgba(176,141,87,.08);border-radius:0 6px 6px 0;margin-bottom:8px;}
+  .count{font-size:11px;color:var(--gold-dark);font-family:'IBM Plex Mono',monospace;}
+  .disclaimer{font-size:10.5px;color:var(--muted);text-align:center;padding:0 16px 20px;}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="seal" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="3" x2="12" y2="19"/>
+        <line x1="5" y1="7" x2="19" y2="7"/>
+        <path d="M5 7 L2.6 12.2 A2.6 2.6 0 0 0 7.4 12.2 Z"/>
+        <path d="M19 7 L16.6 12.2 A2.6 2.6 0 0 0 21.4 12.2 Z"/>
+        <line x1="8" y1="21" x2="16" y2="21"/>
+        <line x1="12" y1="19" x2="12" y2="21"/>
+      </svg>
+    </div>
+    <div>
+      <h1>ค้นความรู้กฎหมายสหกรณ์ &amp; แรงงาน</h1>
+      <p>ค้นคำจากไฟล์ความรู้ใน GitHub repository โดยตรง</p>
+    </div>
+  </div>
+
+  <div class="searchrow">
+    <input type="text" id="input" placeholder="พิมพ์คำหรือมาตราที่ต้องการค้น เช่น ค่าชดเชย เลิกจ้าง">
+    <button id="searchBtn" disabled>ค้นหา</button>
+  </div>
+
+  <div class="status" id="status">กำลังโหลดเอกสารความรู้...</div>
+  <div class="results" id="results"></div>
+  <div class="disclaimer">ผลการค้นหาคือข้อความต้นฉบับจากไฟล์ในคลังความรู้ ไม่ใช่คำตอบที่สร้างขึ้นเอง ควรอ่านบริบทเต็มก่อนใช้อ้างอิงจริง</div>
+
+<script>
+  // ==== ตั้งค่า 3 อย่างนี้ให้ตรงกับ GitHub repository ของคุณ ====
+  const GITHUB_OWNER = 'ใส่ชื่อบัญชี-หรือองค์กร-GitHub';
+  const GITHUB_REPO = 'ใส่ชื่อ-repository';
+  const KNOWLEDGE_PATH = 'knowledge'; // ชื่อโฟลเดอร์ใน repo ที่เก็บไฟล์ .txt ความรู้
+  // ==========================================================
+
+  const input = document.getElementById('input');
+  const searchBtn = document.getElementById('searchBtn');
+  const resultsEl = document.getElementById('results');
+  const statusEl = document.getElementById('status');
+
+  let docs = []; // { name, url, text }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  async function loadKnowledge() {
+    try {
+      const listUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${KNOWLEDGE_PATH}`;
+      const listRes = await fetch(listUrl);
+      if (!listRes.ok) throw new Error('เปิดโฟลเดอร์ความรู้ไม่ได้ (ตรวจสอบชื่อ owner/repo/path)');
+      const files = await listRes.json();
+      const textFiles = files.filter(f => f.type === 'file' && /\.(txt|md)$/i.test(f.name));
+
+      statusEl.textContent = `กำลังโหลดไฟล์ความรู้ 0/${textFiles.length}...`;
+
+      let loaded = 0;
+      for (const f of textFiles) {
+        const contentRes = await fetch(f.download_url);
+        const text = await contentRes.text();
+        docs.push({ name: f.name, url: f.html_url, text });
+        loaded++;
+        statusEl.textContent = `กำลังโหลดไฟล์ความรู้ ${loaded}/${textFiles.length}...`;
+      }
+
+      statusEl.textContent = `พร้อมค้นหา — โหลดเอกสารความรู้แล้ว ${docs.length} ไฟล์`;
+      searchBtn.disabled = false;
+      resultsEl.innerHTML = '<div class="empty">พิมพ์คำสำคัญด้านบนแล้วกดค้นหา ระบบจะแสดงย่อหน้าจากไฟล์ความรู้ที่มีคำนั้นปรากฏอยู่ พร้อมลิงก์เปิดไฟล์ต้นฉบับใน GitHub</div>';
+    } catch (err) {
+      statusEl.textContent = 'โหลดเอกสารความรู้ไม่สำเร็จ: ' + err.message;
+    }
+  }
+
+  function searchDocs(question) {
+    const keywords = question.split(/\s+/).filter(w => w.length > 1);
+    if (keywords.length === 0) return [];
+
+    const results = [];
+    docs.forEach(doc => {
+      const paragraphs = doc.text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+      const matched = paragraphs.filter(p => keywords.some(kw => p.includes(kw)));
+      if (matched.length > 0) {
+        results.push({ name: doc.name, url: doc.url, excerpts: matched.slice(0, 5), matchCount: matched.length });
+      }
+    });
+
+    results.sort((a, b) => b.matchCount - a.matchCount);
+    return results.slice(0, 8);
+  }
+
+  function renderResults(list) {
+    resultsEl.innerHTML = '';
+    if (!list || list.length === 0) {
+      resultsEl.innerHTML = '<div class="empty">ไม่พบคำที่ค้นหาในเอกสารความรู้ ลองใช้คำอื่น หรือเพิ่มไฟล์ความรู้ที่เกี่ยวข้องเข้า repository</div>';
+      return;
+    }
+    list.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      let html = `<h3>${escapeHtml(r.name)} <a href="${r.url}" target="_blank">เปิดไฟล์ต้นฉบับ</a></h3>` +
+        `<div class="count">พบคำที่ค้นหา ${r.matchCount} แห่ง</div>`;
+      r.excerpts.forEach(ex => { html += `<div class="excerpt">${escapeHtml(ex)}</div>`; });
+      card.innerHTML = html;
+      resultsEl.appendChild(card);
+    });
+  }
+
+  function handleSearch() {
+    const q = input.value.trim();
+    if (!q) return;
+    renderResults(searchDocs(q));
+  }
+
+  searchBtn.addEventListener('click', handleSearch);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
+
+  loadKnowledge();
+</script>
+</body>
+</html>
