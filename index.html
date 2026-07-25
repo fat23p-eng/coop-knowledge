@@ -49,6 +49,7 @@
   .copybtn:active{transform:none;box-shadow:none;}
   .copybtn svg{width:12px;height:12px;}
   .excerpt{font-size:13.5px;line-height:1.7;padding:8px 10px;border-left:2px solid var(--accent);background:rgba(255,103,0,.06);border-radius:0 6px 6px 0;margin-bottom:8px;color:var(--ink-text);}
+  .excerpt a{color:var(--blue);text-decoration:underline;word-break:break-all;}
   .count{font-size:11px;color:var(--accent-dark);font-family:'IBM Plex Mono',monospace;}
   .disclaimer{font-size:10.5px;color:var(--muted);text-align:center;padding:0 16px 20px;}
 
@@ -112,6 +113,12 @@
 
   function escapeHtml(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function linkify(escapedText) {
+    return escapedText.replace(/(https?:\/\/[^\s<]+)/g, url =>
+      `<a href="${url}" target="_blank" rel="noopener">${url}</a>`
+    );
   }
 
   async function loadKnowledge() {
@@ -222,7 +229,7 @@
       const displayName = r.name.replace(/\.(txt|md|xlsx|xls)$/i, '');
       let html = `<h3>${escapeHtml(displayName)}</h3>` +
         `<div class="count">คะแนนความเกี่ยวข้อง ${r.matchCount}</div>`;
-      r.excerpts.forEach(ex => { html += `<div class="excerpt">${escapeHtml(ex)}</div>`; });
+      r.excerpts.forEach(ex => { html += `<div class="excerpt">${linkify(escapeHtml(ex))}</div>`; });
       card.innerHTML = html;
       resultsEl.appendChild(card);
     });
