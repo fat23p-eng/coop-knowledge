@@ -97,8 +97,8 @@
 
 <script>
   // ==== ตั้งค่า 3 อย่างนี้ให้ตรงกับ GitHub repository ของคุณ ====
-  const GITHUB_OWNER = 'fat23p-eng';
-  const GITHUB_REPO = 'coop-knowledge';
+  const GITHUB_OWNER = 'ใส่ชื่อบัญชี-หรือองค์กร-GitHub';
+  const GITHUB_REPO = 'ใส่ชื่อ-repository';
   const KNOWLEDGE_PATH = 'knowledge'; // ชื่อโฟลเดอร์ใน repo ที่เก็บไฟล์ .txt, .md หรือ .xlsx ความรู้
   // ==========================================================
 
@@ -216,14 +216,14 @@
       resultsEl.innerHTML = '<div class="empty">ไม่พบคำที่ค้นหาในเอกสารความรู้ ลองใช้คำอื่น หรือเพิ่มไฟล์ความรู้ที่เกี่ยวข้องเข้า repository</div>';
       return;
     }
-    list.forEach(r => {
+    list.forEach((r, idx) => {
       const card = document.createElement('div');
       card.className = 'card';
       let html = `<h3>${escapeHtml(r.name)}
         <span class="linkgroup">
-          <button type="button" class="copybtn" data-url="${escapeHtml(r.url)}">
+          <button type="button" class="copybtn" data-index="${idx}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            คัดลอกลิงก์
+            คัดลอกข้อความ
           </button>
         </span>
       </h3>` +
@@ -235,13 +235,15 @@
 
     resultsEl.querySelectorAll('.copybtn').forEach(btn => {
       btn.addEventListener('click', async () => {
+        const r = list[Number(btn.dataset.index)];
+        const textToCopy = `${r.name}\n\n${r.excerpts.join('\n\n')}`;
         try {
-          await navigator.clipboard.writeText(btn.dataset.url);
+          await navigator.clipboard.writeText(textToCopy);
           const original = btn.innerHTML;
           btn.innerHTML = 'คัดลอกแล้ว ✓';
           setTimeout(() => { btn.innerHTML = original; }, 1500);
         } catch {
-          prompt('คัดลอกลิงก์นี้ด้วยตนเอง:', btn.dataset.url);
+          prompt('คัดลอกข้อความนี้ด้วยตนเอง:', textToCopy);
         }
       });
     });
