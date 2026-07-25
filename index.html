@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ค้นความรู้กฎหมายสหกรณ์และแรงงาน</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F1E33">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="กฎหมายสหกรณ์">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;700&family=Noto+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --ink:#0F1E33; --ink-2:#16294A; --paper:#EFE7D2; --gold:#B08D57; --gold-dark:#7C5F35;
@@ -35,6 +43,18 @@
   .excerpt{font-size:13.5px;line-height:1.7;padding:8px 10px;border-left:2px solid var(--gold-dark);background:rgba(176,141,87,.08);border-radius:0 6px 6px 0;margin-bottom:8px;}
   .count{font-size:11px;color:var(--gold-dark);font-family:'IBM Plex Mono',monospace;}
   .disclaimer{font-size:10.5px;color:var(--muted);text-align:center;padding:0 16px 20px;}
+
+  @media (max-width:480px){
+    .topbar{padding:14px 16px;gap:10px;}
+    .topbar h1{font-size:16px;}
+    .topbar p{font-size:10.5px;}
+    .searchrow{padding:14px 16px;flex-wrap:wrap;}
+    input[type=text]{width:100%;font-size:16px;} /* 16px กันเบราว์เซอร์มือถือซูมอัตโนมัติตอนแตะช่องพิมพ์ */
+    button{width:100%;justify-content:center;}
+    .results{padding:14px;}
+    .card{padding:14px;}
+    .card h3{font-size:14px;}
+  }
 </style>
 </head>
 <body>
@@ -69,9 +89,9 @@
 
 <script>
   // ==== ตั้งค่า 3 อย่างนี้ให้ตรงกับ GitHub repository ของคุณ ====
-  const GITHUB_OWNER = 'fat23p-eng';
-  const GITHUB_REPO = 'coop-knowledge';
-  const KNOWLEDGE_PATH = 'knowledge'; // ชื่อโฟลเดอร์ใน repo ที่เก็บไฟล์ .txt ความรู้
+  const GITHUB_OWNER = 'ใส่ชื่อบัญชี-หรือองค์กร-GitHub';
+  const GITHUB_REPO = 'ใส่ชื่อ-repository';
+  const KNOWLEDGE_PATH = 'knowledge'; // ชื่อโฟลเดอร์ใน repo ที่เก็บไฟล์ .txt, .md หรือ .xlsx ความรู้
   // ==========================================================
 
   const input = document.getElementById('input');
@@ -92,17 +112,30 @@
       const listRes = await fetch(listUrl);
       if (!listRes.ok) throw new Error('เปิดโฟลเดอร์ความรู้ไม่ได้ (ตรวจสอบชื่อ owner/repo/path)');
       const files = await listRes.json();
-      const textFiles = files.filter(f => f.type === 'file' && /\.(txt|md)$/i.test(f.name));
+      const knowledgeFiles = files.filter(f => f.type === 'file' && /\.(txt|md|xlsx|xls)$/i.test(f.name));
 
-      statusEl.textContent = `กำลังโหลดไฟล์ความรู้ 0/${textFiles.length}...`;
+      statusEl.textContent = `กำลังโหลดไฟล์ความรู้ 0/${knowledgeFiles.length}...`;
 
       let loaded = 0;
-      for (const f of textFiles) {
-        const contentRes = await fetch(f.download_url);
-        const text = await contentRes.text();
-        docs.push({ name: f.name, url: f.html_url, text });
+      for (const f of knowledgeFiles) {
+        if (/\.(xlsx|xls)$/i.test(f.name)) {
+          const buf = await (await fetch(f.download_url)).arrayBuffer();
+          const workbook = XLSX.read(buf, { type: 'array' });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+          const blocks = rows.map(row =>
+            Object.entries(row)
+              .filter(([, v]) => String(v).trim() !== '')
+              .map(([k, v]) => `${k}: ${v}`)
+              .join('\n')
+          ).filter(Boolean);
+          docs.push({ name: f.name, url: f.html_url, text: blocks.join('\n\n') });
+        } else {
+          const text = await (await fetch(f.download_url)).text();
+          docs.push({ name: f.name, url: f.html_url, text });
+        }
         loaded++;
-        statusEl.textContent = `กำลังโหลดไฟล์ความรู้ ${loaded}/${textFiles.length}...`;
+        statusEl.textContent = `กำลังโหลดไฟล์ความรู้ ${loaded}/${knowledgeFiles.length}...`;
       }
 
       statusEl.textContent = `พร้อมค้นหา — โหลดเอกสารความรู้แล้ว ${docs.length} ไฟล์`;
