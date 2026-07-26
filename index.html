@@ -204,12 +204,13 @@
     const q = question.trim();
     if (q.length < 2) return [];
 
-    const n = q.replace(/\s+/g, '').length <= 6 ? 2 : 4; // คำถามสั้นใช้ n เล็กลง ป้องกันไม่มี n-gram ให้เทียบเลย
+    const n = q.replace(/\s+/g, '').length <= 6 ? 2 : 5; // คำถามสั้นใช้ n เล็กลง / คำถามยาวใช้ n ใหญ่ขึ้นเพื่อความจำเพาะเจาะจง
     const qGrams = ngramSet(q, n);
     if (qGrams.size === 0) return [];
 
-    // เกณฑ์คะแนนขั้นต่ำ ปรับตามสัดส่วนความยาวคำถาม กันท่อนข้อความสั้น ๆ หลุดเข้ามาเยอะเกินไป
-    const minScore = Math.max(2, Math.ceil(qGrams.size * 0.25));
+    // เกณฑ์คือ "สัดส่วน" ของคำค้นที่ต้องพบในย่อหน้านั้น ไม่ใช่แค่นับจำนวนแบบเดิม
+    // ทำให้ย่อหน้าที่คล้ายกันแค่ผิวเผินหลุดออกไป เหลือแต่ย่อหน้าที่ตรงกับคำถามจริง ๆ
+    const minRatio = n === 2 ? 0.5 : 0.35;
 
     const results = [];
     docs.forEach(doc => {
@@ -227,8 +228,11 @@
       if (buffer) paragraphs.push(buffer);
 
       const scored = paragraphs
-        .map(p => ({ text: p, score: overlapScore(qGrams, ngramSet(p, n)) }))
-        .filter(p => p.score >= minScore)
+        .map(p => {
+          const score = overlapScore(qGrams, ngramSet(p, n));
+          return { text: p, score, ratio: score / qGrams.size };
+        })
+        .filter(p => p.ratio >= minRatio)
         .sort((a, b) => b.score - a.score);
 
       if (scored.length > 0) {
