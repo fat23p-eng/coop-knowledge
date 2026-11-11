@@ -189,15 +189,25 @@ async function loadKnowledge(){
 /* ---------- ค้นหา ---------- */
 function grams(t,n){const c=t.replace(/\s+/g,''),g=new Set();for(let i=0;i<=c.length-n;i++)g.add(c.slice(i,i+n));return g;}
 function search(q){
-  const n=q.replace(/\s+/g,'').length<=6?2:4, qg=[...grams(q,n)];
+  // ชั้น 1 "ตรงคำ": ย่อหน้ามีคำค้นครบทุกคำ (ตัดช่องว่างแล้ว) · ชั้น 2 "ใกล้เคียง": ชิ้นตัวอักษรตรงกัน ≥ 60%
+  const qc=q.replace(/\s+/g,'').toLowerCase();
+  let words=q.toLowerCase().split(/\s+/).filter(w=>w.length>=2); if(!words.length) words=[qc];
+  const n=qc.length<=6?2:4, qg=[...grams(qc,n)];
   if(!qg.length) return [];
-  const min=Math.max(2,Math.ceil(qg.length*0.25)), out=[];
+  const min=Math.max(2,Math.ceil(qg.length*0.6)), out=[];
   docs.forEach(d=>{
     const raw=d.text.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean), paras=[]; let buf='';
     raw.forEach(p=>{buf=buf?buf+'\n'+p:p; if(buf.replace(/\s+/g,'').length>=40){paras.push(buf);buf='';}});
     if(buf) paras.push(buf);
-    const sc=paras.map(p=>{const g=grams(p,n);let s=0;qg.forEach(k=>{if(g.has(k))s++;});return{t:p,s};}).filter(x=>x.s>=min).sort((a,b)=>b.s-a.s);
-    if(sc.length) out.push({name:d.name.replace(/\.(txt|md|xlsx|xls)$/i,''),url:d.url,ex:sc.slice(0,12).map(x=>x.t),score:sc.reduce((a,x)=>a+x.s,0)});
+    const strong=[], near=[];
+    paras.forEach(p=>{
+      const pc=p.replace(/\s+/g,'').toLowerCase();
+      if(words.every(w=>pc.includes(w))){ strong.push({t:p,s:pc.split(words[0]).length}); return; }
+      const g=grams(pc,n); let s=0; qg.forEach(k=>{if(g.has(k))s++;});
+      if(s>=min) near.push({t:p,s});
+    });
+    const by=(a,b)=>b.s-a.s;
+    if(strong.length||near.length) out.push({name:d.name.replace(/\.(txt|md|xlsx|xls)$/i,''),url:d.url,strong:strong.sort(by).map(x=>x.t),near:near.sort(by).map(x=>x.t),score:strong.length*1000+near.length});
   });
   return out.sort((a,b)=>b.score-a.score);
 }
@@ -206,24 +216,32 @@ function hl(text,q){
   q.split(/\s+/).filter(w=>w.length>=2).forEach(w=>{const e=esc(w).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); h=h.replace(new RegExp('('+e+')(?![^<]*>)','gi'),'<mark>$1</mark>');});
   return h.replace(/(https?:\/\/[^\s<"]+)/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
 }
+const view=f=>last.near?f.strong.concat(f.near):f.strong;
 function draw(){
   const L=last; if(!L) return;
-  if(!L.list.length){ $('res').innerHTML=`<div class="empty"><div class="ic">🔍</div>ไม่พบ “${esc(L.q)}” ลองใช้คำอื่นหรือคำที่สั้นลง</div>`; return; }
-  let h='';
-  L.list.slice(0,L.shown).forEach((f,i)=>{
-    h+=`<article class="hit"><h3><span>${esc(f.name)}</span><span class="src">ไฟล์ความรู้</span></h3><div class="score">คะแนนความเกี่ยวข้อง ${f.score} · ${f.ex.length} ย่อหน้า</div>`;
-    f.ex.slice(0,f.open?f.ex.length:3).forEach(t=>h+=`<div class="excerpt">${hl(t,L.q)}</div>`);
-    h+='<div class="acts">'+(f.ex.length>3&&!f.open?`<button class="btn" type="button" data-a="open" data-i="${i}">แสดงอีก ${f.ex.length-3} ย่อหน้า</button>`:'')+
+  const nStrong=L.list.filter(f=>f.strong.length).length;
+  if(!nStrong&&L.list.length) L.near=true;   // ไม่มีคำตรงตัวเลย → แสดงผลใกล้เคียงแทน
+  const files=L.list.filter(f=>view(f).length), nearCount=L.list.reduce((a,f)=>a+f.near.length,0);
+  if(!files.length){ $('res').innerHTML=`<div class="empty"><div class="ic">🔍</div>ไม่พบ “${esc(L.q)}” ลองใช้คำอื่นหรือคำที่สั้นลง</div>`; return; }
+  let h=`<p class="score">${nStrong&&!L.near?`พบคำ “${esc(L.q)}” ตรงตัวใน ${nStrong} ไฟล์`:(nStrong?`ตรงตัวและใกล้เคียง ${files.length} ไฟล์`:`ไม่พบคำตรงตัว แสดงผลใกล้เคียง ${files.length} ไฟล์`)}</p>`;
+  files.slice(0,L.shown).forEach(f=>{
+    const i=L.list.indexOf(f), ex=view(f);
+    h+=`<article class="hit"><h3><span>${esc(f.name)}</span><span class="src">ไฟล์ความรู้</span></h3><div class="score">${f.strong.length?'ตรงตัว '+f.strong.length+' ย่อหน้า':''}${L.near&&f.near.length?(f.strong.length?' · ':'')+'ใกล้เคียง '+f.near.length+' ย่อหน้า':''}</div>`;
+    ex.slice(0,f.open?12:3).forEach(t=>h+=`<div class="excerpt">${hl(t,L.q)}</div>`);
+    h+='<div class="acts">'+(ex.length>3&&!f.open?`<button class="btn" type="button" data-a="open" data-i="${i}">แสดงอีก ${Math.min(12,ex.length)-3} ย่อหน้า</button>`:'')+
       `<a class="btn" href="${esc(f.url)}" target="_blank" rel="noopener">เปิดไฟล์ต้นฉบับ</a><button class="btn" type="button" data-a="copy" data-i="${i}">คัดลอกข้อความ</button></div></article>`;
   });
-  if(L.list.length>L.shown) h+=`<button class="btn more" type="button" data-a="more">แสดงผลเพิ่ม (+${Math.min(4,L.list.length-L.shown)})</button>`;
-  $('res').innerHTML=`<p class="score">พบ ${L.list.length} ไฟล์ที่เกี่ยวข้อง</p>`+h;
+  h+='<div class="acts" style="justify-content:center">';
+  if(files.length>L.shown) h+=`<button class="btn" type="button" data-a="more">แสดงไฟล์เพิ่ม (+${Math.min(4,files.length-L.shown)})</button>`;
+  if(nStrong&&!L.near&&nearCount) h+=`<button class="btn" type="button" data-a="near">แสดงผลใกล้เคียงด้วย (${nearCount} ย่อหน้า)</button>`;
+  $('res').innerHTML=h+'</div>';
 }
 $('res').addEventListener('click',e=>{
   const b=e.target.closest('button[data-a]'); if(!b) return; const a=b.dataset.a,i=+b.dataset.i;
   if(a==='open'){last.list[i].open=1;draw();}
   else if(a==='more'){last.shown+=4;draw();}
-  else if(a==='copy'){const f=last.list[i],t=f.ex.slice(0,3).join('\n\n')+'\n\n— '+f.name+' '+f.url;
+  else if(a==='near'){last.near=true;draw();}
+  else if(a==='copy'){const f=last.list[i],t=view(f).slice(0,3).join('\n\n')+'\n\n— '+f.name+' '+f.url;
     (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{b.textContent='คัดลอกแล้ว ✓';},()=>{b.textContent='คัดลอกไม่ได้';});}
 });
 function go(){
@@ -232,7 +250,7 @@ function go(){
   if(state==='loading'){ setSys('loading','ยังโหลดคลังความรู้อยู่ กรุณารอสักครู่แล้วกดค้นหาอีกครั้ง…',2); return; }
   if(state==='error'){ $('res').innerHTML='<div class="empty">ยังค้นหาไม่ได้ เพราะโหลดคลังความรู้ไม่สำเร็จ ลองรีเฟรชหน้า</div>'; return; }
   $('go').disabled=true; const list=search(q); last={q,list,shown:4}; draw(); $('go').disabled=false;
-  setSys('ok','พร้อมค้นหา · พบ '+list.length+' ไฟล์สำหรับ “'+q+'”',4);
+  setSys('ok','พร้อมค้นหา · พบคำตรงตัวใน '+list.filter(f=>f.strong.length).length+' ไฟล์',4);
 }
 $('form').addEventListener('submit',e=>{e.preventDefault();go();});
 $('chips').innerHTML=CHIPS.map(c=>`<button type="button">${esc(c)}</button>`).join('');
