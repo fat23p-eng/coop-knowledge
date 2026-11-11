@@ -188,6 +188,27 @@ async function loadKnowledge(){
 
 /* ---------- ค้นหา ---------- */
 function grams(t,n){const c=t.replace(/\s+/g,''),g=new Set();for(let i=0;i<=c.length-n;i++)g.add(c.slice(i,i+n));return g;}
+/* ตัดย่อหน้า: บรรทัดว่าง/เส้นคั่น = จบย่อหน้า · บรรทัดขึ้นต้น "มาตรา/ข้อ/หมวด + เลข" = เริ่มย่อหน้าใหม่ · ยาวเกิน ~600 ตัวอักษรตัดเป็นช่วง */
+function segment_(text) {
+  var out = [], buf = '';
+  function flush() { if (buf) out.push(buf); buf = ''; }
+  String(text).split(/\r?\n/).forEach(function (line) {
+    var t = line.trim();
+    if (!t || /^[-=_*~.·]{3,}$/.test(t)) { if (buf.replace(/\s+/g, '').length >= 40) flush(); return; }
+    if (/^(มาตรา|ข้อ|หมวด|ส่วนที่)\s*\d/.test(t) && buf.replace(/\s+/g, '').length >= 40) flush();
+    buf = buf ? buf + '\n' + t : t;
+    if (buf.replace(/\s+/g, '').length >= 600) flush();
+  });
+  flush();
+  return out;
+}
+/* ย่อหน้ายาว: แสดงเฉพาะช่วงรอบคำที่ค้น (ไม่สนช่องว่างระหว่างตัวอักษร) */
+function clip_(t, q) {
+  if (t.length <= 700) return t;
+  var w = q.trim().split(/\s+/)[0] || '', re = new RegExp(w.split('').filter(function (c) { return c.trim(); }).map(function (c) { return c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('\\s*'), 'i');
+  var m = w ? re.exec(t) : null, i = m ? m.index : 0, s = Math.max(0, i - 250), e = Math.min(t.length, i + 450);
+  return (s > 0 ? '… ' : '') + t.slice(s, e) + (e < t.length ? ' …' : '');
+}
 function search(q){
   // ชั้น 1 "ตรงคำ": ย่อหน้ามีคำค้นครบทุกคำ (ตัดช่องว่างแล้ว) · ชั้น 2 "ใกล้เคียง": ชิ้นตัวอักษรตรงกัน ≥ 60%
   const qc=q.replace(/\s+/g,'').toLowerCase();
@@ -196,9 +217,7 @@ function search(q){
   if(!qg.length) return [];
   const min=Math.max(2,Math.ceil(qg.length*0.6)), out=[];
   docs.forEach(d=>{
-    const raw=d.text.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean), paras=[]; let buf='';
-    raw.forEach(p=>{buf=buf?buf+'\n'+p:p; if(buf.replace(/\s+/g,'').length>=40){paras.push(buf);buf='';}});
-    if(buf) paras.push(buf);
+    const paras=segment_(d.text);
     const strong=[], near=[];
     paras.forEach(p=>{
       const pc=p.replace(/\s+/g,'').toLowerCase();
@@ -213,7 +232,7 @@ function search(q){
 }
 function hl(text,q){
   let h=esc(text);
-  q.split(/\s+/).filter(w=>w.length>=2).forEach(w=>{const e=esc(w).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); h=h.replace(new RegExp('('+e+')(?![^<]*>)','gi'),'<mark>$1</mark>');});
+  q.split(/\s+/).filter(w=>w.length>=2).forEach(w=>{const e=w.split('').filter(c=>c.trim()).map(c=>esc(c).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('\\s*'); h=h.replace(new RegExp('('+e+')(?![^<]*>)','gi'),'<mark>$1</mark>');});
   return h.replace(/(https?:\/\/[^\s<"]+)/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
 }
 const view=f=>last.near?f.strong.concat(f.near):f.strong;
@@ -227,7 +246,7 @@ function draw(){
   files.slice(0,L.shown).forEach(f=>{
     const i=L.list.indexOf(f), ex=view(f);
     h+=`<article class="hit"><h3><span>${esc(f.name)}</span><span class="src">ไฟล์ความรู้</span></h3><div class="score">${f.strong.length?'ตรงตัว '+f.strong.length+' ย่อหน้า':''}${L.near&&f.near.length?(f.strong.length?' · ':'')+'ใกล้เคียง '+f.near.length+' ย่อหน้า':''}</div>`;
-    ex.slice(0,f.open?12:3).forEach(t=>h+=`<div class="excerpt">${hl(t,L.q)}</div>`);
+    ex.slice(0,f.open?12:3).forEach(t=>h+=`<div class="excerpt">${hl(clip_(t,L.q),L.q)}</div>`);
     h+='<div class="acts">'+(ex.length>3&&!f.open?`<button class="btn" type="button" data-a="open" data-i="${i}">แสดงอีก ${Math.min(12,ex.length)-3} ย่อหน้า</button>`:'')+
       `<a class="btn" href="${esc(f.url)}" target="_blank" rel="noopener">เปิดไฟล์ต้นฉบับ</a><button class="btn" type="button" data-a="copy" data-i="${i}">คัดลอกข้อความ</button></div></article>`;
   });
@@ -241,7 +260,7 @@ $('res').addEventListener('click',e=>{
   if(a==='open'){last.list[i].open=1;draw();}
   else if(a==='more'){last.shown+=4;draw();}
   else if(a==='near'){last.near=true;draw();}
-  else if(a==='copy'){const f=last.list[i],t=view(f).slice(0,3).join('\n\n')+'\n\n— '+f.name+' '+f.url;
+  else if(a==='copy'){const f=last.list[i],t=view(f).slice(0,3).map(x=>clip_(x,last.q)).join('\n\n')+'\n\n— '+f.name+' '+f.url;
     (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{b.textContent='คัดลอกแล้ว ✓';},()=>{b.textContent='คัดลอกไม่ได้';});}
 });
 function go(){
