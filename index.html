@@ -1,333 +1,244 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" data-theme="ocean" data-font="sarabun">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ผู้ช่วยค้นหากฎหมายสหกรณ์และเรื่องหารืออัจฉริยะ</title>
+<title>ผู้ช่วยค้นหากฎหมายสหกรณ์</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#004E98">
+<meta name="theme-color" content="#0E7490">
 <link rel="icon" href="icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="กฎหมายสหกรณ์อัจฉริยะ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;700&family=Noto+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=IBM+Plex+Sans+Thai:wght@400;600;700&family=Noto+Sans+Thai:wght@400;600;700&family=Prompt:wght@400;600&family=Kanit:wght@400;600&display=swap" rel="stylesheet">
+<script>
+/* ตั้งธีม/ฟอนต์ที่จำไว้ก่อนวาดหน้า กันกะพริบ */
+try{var t=localStorage.getItem('theme'),f=localStorage.getItem('font');if(t)document.documentElement.dataset.theme=t;if(f)document.documentElement.dataset.font=f;}catch(e){}
+</script>
 <style>
-  :root{
-    --bg:#EBEBEB; --bg-2:#004E98; --card:#FFFFFF; --accent:#FF6700; --accent-dark:#CC5200;
-    --blue:#3A6EA5; --ink-text:#1A2027; --muted:#6B7280; --border:#C0C0C0; --header-text:#F5F7FA;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;min-height:100vh;background:var(--bg);font-family:'Noto Sans Thai',sans-serif;color:var(--ink-text);}
-  .topbar{display:flex;align-items:center;gap:12px;padding:20px;background:var(--bg-2);border-bottom:1px solid #003b73;}
-  .seal{width:38px;height:38px;border-radius:50%;border:2px solid var(--header-text);display:flex;align-items:center;justify-content:center;color:var(--header-text);flex-shrink:0;}
-  .seal svg{width:20px;height:20px;}
-  .topbar h1{font-family:'Noto Serif Thai',serif;font-size:18px;margin:0;color:var(--header-text);}
-  .topbar p{margin:2px 0 0;font-size:11.5px;color:#C9D6E5;}
-  .searchrow{display:flex;gap:8px;padding:18px 20px;background:var(--bg-2);border-bottom:1px solid #003b73;max-width:760px;margin:0 auto;}
-  input[type=text]{flex:1;border-radius:8px;border:1.5px solid #C0C0C0;background:#FFFFFF;color:var(--ink-text);padding:11px 12px;font-family:inherit;font-size:14.5px;}
-  input[type=text]::placeholder{color:#9AA1AB;}
-  input[type=text]:focus{outline:none;border-color:var(--accent);}
-  button{display:flex;align-items:center;gap:7px;height:44px;background:var(--accent);color:#FFFFFF;border:none;border-radius:8px;padding:0 20px;font-weight:700;font-size:14.5px;cursor:pointer;font-family:'Noto Sans Thai',sans-serif;box-shadow:0 2px 0 var(--accent-dark);transition:transform .08s,box-shadow .08s,background .15s;flex-shrink:0;}
-  button svg{width:16px;height:16px;flex-shrink:0;}
-  button:hover:not(:disabled){background:#FF7D26;}
-  button:active:not(:disabled){transform:translateY(2px);box-shadow:0 0 0 var(--accent-dark);}
-  button:disabled{opacity:.6;box-shadow:none;cursor:default;}
-  .resetbtn{background:#FFFFFF;color:var(--blue);border:1.5px solid var(--blue);padding:0 12px;box-shadow:none;}
-  .resetbtn:hover{background:rgba(58,110,165,.10);}
-  .resetbtn:active{transform:none;box-shadow:none;}
-  .btnrow{display:flex;gap:8px;flex-shrink:0;}
-  .results{padding:20px;max-width:760px;margin:0 auto;}
-  .empty{margin:60px auto;text-align:center;color:var(--muted);font-size:13.5px;max-width:380px;line-height:1.8;}
-  .status{text-align:center;color:var(--muted);font-size:12px;padding:8px 20px;}
-  .card{background:var(--card);color:var(--ink-text);border-radius:10px;padding:16px 18px;margin-bottom:14px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(26,32,39,.08);}
-  .card h3{font-family:'Noto Serif Thai',serif;font-size:15px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;color:var(--ink-text);}
-  .card h3 a{display:inline-flex;align-items:center;gap:5px;color:var(--blue);font-size:11.5px;font-family:'Noto Sans Thai',sans-serif;text-decoration:none;font-weight:600;white-space:nowrap;border:1px solid var(--blue);padding:4px 9px;border-radius:6px;}
-  .card h3 a:hover{background:rgba(58,110,165,.10);}
-  .card h3 a svg{width:12px;height:12px;flex-shrink:0;}
-  .linkgroup{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-  .copybtn{display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--blue);color:var(--blue);height:auto;padding:4px 9px;border-radius:6px;font-size:11.5px;font-weight:600;box-shadow:none;}
-  .copybtn:hover{background:rgba(58,110,165,.10);}
-  .copybtn:active{transform:none;box-shadow:none;}
-  .copybtn svg{width:12px;height:12px;}
-  .excerpt{font-size:13.5px;line-height:1.7;padding:8px 10px;border-left:2px solid var(--accent);background:rgba(255,103,0,.06);border-radius:0 6px 6px 0;margin-bottom:8px;color:var(--ink-text);}
-  .excerpt a{color:var(--blue);text-decoration:underline;word-break:break-all;}
-  .morebtn{display:block;background:none;border:1px dashed var(--blue);color:var(--blue);height:auto;width:auto;padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;box-shadow:none;margin-top:4px;}
-  .morebtn:hover{background:rgba(58,110,165,.08);}
-  .morebtn:active{transform:none;box-shadow:none;}
-  .morebtn-main{margin:8px auto 0;text-align:center;}
-  .count{font-size:11px;color:var(--accent-dark);font-family:'IBM Plex Mono',monospace;}
-  .disclaimer{font-size:10.5px;color:var(--muted);text-align:center;padding:0 16px 20px;}
-
-  @media (max-width:480px){
-    .topbar{padding:14px 16px;gap:10px;}
-    .topbar h1{font-size:16px;}
-    .topbar p{font-size:10.5px;}
-    .searchrow{padding:14px 16px;flex-wrap:wrap;}
-    input[type=text]{width:100%;font-size:16px;} /* 16px กันเบราว์เซอร์มือถือซูมอัตโนมัติตอนแตะช่องพิมพ์ */
-    .btnrow{width:100%;}
-    .btnrow button{flex:1;justify-content:center;}
-    .btnrow .resetbtn{flex:0 0 auto;width:48px;}
-    .results{padding:14px;}
-    .card{padding:14px;}
-    .card h3{font-size:14px;}
-  }
+:root{
+  --bg:#F1F5F9;--surface:#FFFFFF;--text:#1F2937;--muted:#4B5563;--line:#D1D5DB;
+  --primary:#0E7490;--on-primary:#FFFFFF;--soft:#CFFAFE;--on-soft:#164E63;--grad:#083344;
+  --ok:#166534;--danger:#B91C1C;--danger-soft:#FEE2E2;--on-danger:#7F1D1D;--warn-soft:#FEF3C7;--on-warn:#78350F;
+  --font:'Sarabun',system-ui,sans-serif;
+}
+html[data-theme="blue"]{--primary:#1D4ED8;--soft:#DBEAFE;--on-soft:#1E3A8A;--grad:#0B2A6B}
+html[data-theme="green"]{--primary:#166534;--soft:#DCFCE7;--on-soft:#14532D;--grad:#052E16}
+html[data-theme="violet"]{--primary:#6D28D9;--soft:#EDE9FE;--on-soft:#4C1D95;--grad:#2E1065}
+html[data-theme="amber"]{--primary:#92400E;--soft:#FEF3C7;--on-soft:#78350F;--grad:#451A03}
+html[data-theme="slate"]{--primary:#334155;--soft:#E2E8F0;--on-soft:#1E293B;--grad:#0F172A}
+html[data-font="plex"]{--font:'IBM Plex Sans Thai','Sarabun',sans-serif}
+html[data-font="noto"]{--font:'Noto Sans Thai','Sarabun',sans-serif}
+html[data-font="prompt"]{--font:'Prompt','Sarabun',sans-serif}
+html[data-font="kanit"]{--font:'Kanit','Sarabun',sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.6}
+[hidden]{display:none!important}
+.hero{position:relative;overflow:hidden;background:linear-gradient(120deg,var(--grad),var(--primary));color:#fff;padding:20px 16px 76px}
+.hero svg{position:absolute;inset:0;width:100%;height:100%;opacity:.35;pointer-events:none}
+.hero-in{position:relative;max-width:820px;margin:0 auto;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.brand{display:flex;gap:12px;align-items:center}
+.seal{width:44px;height:44px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.seal svg{position:static;width:24px;height:24px;opacity:1}
+h1{font-size:20px;line-height:1.3;margin:0}
+.sub{margin:2px 0 0;font-size:14px;opacity:.95}
+.themebtn{border:1px solid #fff;background:rgba(255,255,255,.15);color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap;min-height:40px}
+.themebtn:hover{background:rgba(255,255,255,.28)}
+main{max-width:820px;margin:-52px auto 0;padding:0 16px 24px;position:relative}
+.searchbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(15,23,42,.12)}
+.row{display:flex;gap:8px}
+input[type=search]{flex:1;min-width:0;font:inherit;font-size:17px;padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}
+input[type=search]:focus{outline:none;border-color:var(--primary)}
+.go{border:0;background:var(--primary);color:var(--on-primary);border-radius:10px;padding:0 22px;font:inherit;font-weight:700;cursor:pointer;min-height:48px;min-width:96px}
+.go:disabled{opacity:.6;cursor:default}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chips button{border:1px solid var(--line);background:var(--surface);color:var(--on-soft);border-radius:999px;padding:3px 12px;font:inherit;font-size:14px;cursor:pointer}
+.chips button:hover,.chips button:focus-visible{border-color:var(--primary);background:var(--soft)}
+.sysbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 2px;font-size:14px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.sysbar[data-s=loading] .dot{background:var(--on-warn);animation:p 1s infinite alternate}
+.sysbar[data-s=ok] .dot{background:var(--ok)}
+.sysbar[data-s=error] .dot{background:var(--danger)}
+.steps{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.steps span{border:1px solid var(--line);border-radius:999px;padding:0 10px;background:var(--surface);font-size:13px}
+.steps span.on{color:var(--ok);border-color:var(--ok)}
+@keyframes p{from{opacity:.3}to{opacity:1}}
+.err{background:var(--danger-soft);color:var(--on-danger);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.empty{text-align:center;color:var(--muted);padding:36px 12px;line-height:1.8}
+.empty .ic{font-size:40px}
+.hit{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--primary);border-radius:10px;padding:14px;margin-bottom:12px}
+.hit h3{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 4px;font-size:17px}
+.src{font-size:13px;border-radius:999px;padding:0 10px;background:var(--soft);color:var(--on-soft);font-weight:600}
+.score{font-size:13px;color:var(--muted)}
+.excerpt{border-left:3px solid var(--line);background:var(--bg);border-radius:0 8px 8px 0;padding:8px 10px;margin:8px 0;white-space:pre-wrap;word-break:break-word;font-size:15px}
+.excerpt mark{background:var(--warn-soft);color:var(--on-warn);border-radius:3px;padding:0 2px}
+.excerpt a{color:var(--primary);word-break:break-all}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.btn{border:1px solid var(--primary);color:var(--primary);background:var(--surface);border-radius:8px;padding:5px 12px;font:inherit;font-size:14px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;min-height:36px}
+.btn:hover{background:var(--soft)}
+.more{display:block;margin:6px auto}
+.disc{font-size:13px;color:var(--muted);text-align:center;padding:0 16px 24px;max-width:820px;margin:0 auto}
+dialog{border:0;border-radius:14px;padding:18px;max-width:420px;width:calc(100% - 32px);color:var(--text)}
+dialog::backdrop{background:rgba(15,23,42,.5)}
+dialog h2{margin:0 0 10px;font-size:18px}
+.pick b{display:block;margin:10px 0 6px}
+.pick .opts{display:flex;gap:8px;flex-wrap:wrap}
+.pick button{border:2px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
+.pick button.on{border-color:var(--primary);background:var(--soft);color:var(--on-soft)}
+.pick .sw{width:30px;height:30px;padding:0;border-radius:50%}
+.pick .sw.on{box-shadow:0 0 0 3px var(--soft),0 0 0 5px var(--primary)}
+@media(max-width:480px){.row{flex-direction:column}.go{width:100%}h1{font-size:17px}.hero-in{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.sysbar .dot{animation:none}}
 </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="seal" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="3" x2="12" y2="19"/>
-        <line x1="5" y1="7" x2="19" y2="7"/>
-        <path d="M5 7 L2.6 12.2 A2.6 2.6 0 0 0 7.4 12.2 Z"/>
-        <path d="M19 7 L16.6 12.2 A2.6 2.6 0 0 0 21.4 12.2 Z"/>
-        <line x1="8" y1="21" x2="16" y2="21"/>
-        <line x1="12" y1="19" x2="12" y2="21"/>
-      </svg>
+<header class="hero">
+  <svg viewBox="0 0 800 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke="#fff" stroke-width="1.2"><path d="M0 120 H200 L240 80 H420"/><path d="M380 160 V110 H600 L640 70 H800"/><circle cx="420" cy="80" r="5"/><circle cx="640" cy="70" r="5"/><rect x="620" y="14" width="120" height="50" rx="8"/></g></svg>
+  <div class="hero-in">
+    <div class="brand">
+      <div class="seal" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="3" x2="12" y2="19"/><line x1="5" y1="7" x2="19" y2="7"/><path d="M5 7 L2.6 12.2 A2.6 2.6 0 0 0 7.4 12.2 Z"/><path d="M19 7 L16.6 12.2 A2.6 2.6 0 0 0 21.4 12.2 Z"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="19" x2="12" y2="21"/></svg></div>
+      <div><h1>ผู้ช่วยค้นหากฎหมายสหกรณ์และเรื่องหารือ</h1><p class="sub">ค้นข้อความต้นฉบับจากคลังความรู้ พร้อมลิงก์เปิดไฟล์</p></div>
     </div>
-    <div>
-      <h1>ผู้ช่วยค้นหากฎหมายสหกรณ์และเรื่องหารืออัจฉริยะ</h1>
-      <p>ค้นหากฎหมายสหกรณ์ สรุปกฎหมายแรงงาน และหนังสือตอบเรื่องหารือเกี่ยวกับการดำเนินงานของสหกรณ์</p>
-    </div>
+    <button class="themebtn" id="themeBtn" type="button">🎨 ธีมและฟอนต์</button>
   </div>
+</header>
 
-  <div class="searchrow">
-    <input type="text" id="input" placeholder="พิมพ์คำหรือมาตราที่ต้องการค้น เช่น ค่าชดเชย เลิกจ้าง">
-    <div class="btnrow">
-      <button id="searchBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        ค้นหา
-      </button>
-      <button id="resetBtn" type="button" class="resetbtn" title="ล้างการค้นหา">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-      </button>
+<main>
+  <form class="searchbox" id="form" role="search">
+    <div class="row">
+      <input type="search" id="q" placeholder="เช่น ค่าชดเชย เลิกจ้าง · ประชุมใหญ่ · มาตรา 62" aria-label="คำค้น" autocomplete="off" enterkeyhint="search">
+      <button class="go" id="go" type="submit">ค้นหา</button>
     </div>
-  </div>
+    <div class="chips" id="chips" aria-label="คำค้นแนะนำ"></div>
+  </form>
 
-  <div class="status" id="status">กำลังโหลดเอกสารความรู้...</div>
-  <div class="results" id="results"></div>
-  <div class="disclaimer">ผลการค้นหาคือข้อความต้นฉบับจากไฟล์ในคลังความรู้ ไม่ใช่คำตอบที่สร้างขึ้นเอง ควรอ่านบริบทเต็มก่อนใช้อ้างอิงจริง</div>
+  <div class="sysbar" id="sysbar" data-s="loading" role="status" aria-live="polite">
+    <span class="dot"></span><span id="sysText">กำลังเชื่อมต่อคลังความรู้…</span>
+    <div class="steps"><span id="s1">เชื่อมต่อ</span><span id="s2">อ่านรายชื่อไฟล์</span><span id="s3">โหลดเนื้อหา</span><span id="s4">พร้อมค้นหา</span></div>
+  </div>
+  <div id="err" class="err" hidden></div>
+  <div id="res"><div class="empty"><div class="ic">📚</div>พิมพ์คำสำคัญแล้วกดค้นหา</div></div>
+</main>
+<p class="disc">ผลการค้นหาคือข้อความต้นฉบับจากไฟล์ในคลังความรู้ ไม่ใช่คำตอบที่สร้างขึ้นเอง ควรอ่านบริบทเต็มก่อนใช้อ้างอิงจริง</p>
+
+<dialog id="dlg"><h2>ธีมและฟอนต์</h2><div class="pick" id="pick"></div><p class="score">ค่าที่เลือกจำไว้ในเบราว์เซอร์นี้</p><div class="acts"><button class="btn" type="button" id="dlgOk">เสร็จ</button></div></dialog>
 
 <script>
-  // ==== ตั้งค่า 3 อย่างนี้ให้ตรงกับ GitHub repository ของคุณ ====
-  const GITHUB_OWNER = 'fat23p-eng';
-  const GITHUB_REPO = 'coop-knowledge';
-  const KNOWLEDGE_PATH = 'knowledge'; // ชื่อโฟลเดอร์ใน repo ที่เก็บไฟล์ .txt, .md หรือ .xlsx ความรู้
-  // ==========================================================
+// ==== ตั้งค่า 3 อย่างนี้ให้ตรงกับ GitHub repository ====
+const GITHUB_OWNER = 'fat23p-eng';
+const GITHUB_REPO = 'coop-knowledge';
+const KNOWLEDGE_PATH = 'knowledge';
+const CHIPS = ['ประชุมใหญ่','คณะกรรมการดำเนินการ','เงินสำรอง','ค่าชดเชย เลิกจ้าง','มาตรา 62','ผู้ตรวจสอบกิจการ'];
+// ====================================================
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+let docs = [], state = 'loading', last = null;
 
-  const input = document.getElementById('input');
-  const searchBtn = document.getElementById('searchBtn');
-  const resultsEl = document.getElementById('results');
-  const statusEl = document.getElementById('status');
+function setSys(s, text, step){
+  $('sysbar').dataset.s = s; $('sysText').textContent = text;
+  for(let i=1;i<=4;i++) $('s'+i).classList.toggle('on', i<=step);
+}
+function showErr(m){ $('err').textContent = m; $('err').hidden = !m; }
 
-  let docs = []; // { name, url, text }
-  let knowledgeReady = false;
+/* ---------- ธีม/ฟอนต์ ---------- */
+const THEMES=[['ocean','ทะเลสีคราม (Ocean)','#0E7490'],['blue','ฟ้าดิจิทัล','#1D4ED8'],['green','เขียวสหกรณ์','#166534'],['violet','ม่วงโมเดิร์น','#6D28D9'],['amber','น้ำตาลทอง','#92400E'],['slate','เทาสุขุม','#334155']];
+const FONTS=[['sarabun','สารบรรณ (Sarabun)'],['plex','IBM Plex Sans Thai'],['noto','Noto Sans Thai'],['prompt','Prompt'],['kanit','Kanit']];
+function pref(k,v){ try{ localStorage.setItem(k,v);}catch(e){} document.documentElement.dataset[k]=v; drawPick(); }
+function drawPick(){
+  const d=document.documentElement.dataset;
+  $('pick').innerHTML='<b>สีธีม</b><div class="opts">'+THEMES.map(t=>`<button type="button" class="sw${t[0]===d.theme?' on':''}" style="background:${t[2]}" title="${t[1]}" aria-label="${t[1]}" data-k="theme" data-v="${t[0]}"></button>`).join('')+'</div><b>ตัวอักษร</b><div class="opts">'+FONTS.map(f=>`<button type="button" class="${f[0]===d.font?'on':''}" data-k="font" data-v="${f[0]}">${f[1]}</button>`).join('')+'</div>';
+}
+$('pick').addEventListener('click',e=>{const b=e.target.closest('button');if(b)pref(b.dataset.k,b.dataset.v);});
+$('themeBtn').onclick=()=>{drawPick();const d=$('dlg');if(d.showModal)d.showModal();else d.setAttribute('open','');};
+$('dlgOk').onclick=()=>{const d=$('dlg');if(d.close)d.close();else d.removeAttribute('open');};
 
-  function escapeHtml(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+/* ---------- โหลดคลังความรู้ ---------- */
+let xlsxP=null;
+function loadXlsx(){
+  return xlsxP||(xlsxP=new Promise((ok,no)=>{ if(window.XLSX) return ok(); const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload=ok; s.onerror=()=>no(new Error('xlsx')); document.head.appendChild(s); }));
+}
+async function loadKnowledge(){
+  try{
+    setSys('loading','กำลังเชื่อมต่อคลังความรู้…',1);
+    const r = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${KNOWLEDGE_PATH}`);
+    if(!r.ok) throw new Error(r.status===403?'GitHub จำกัดจำนวนการเรียกชั่วคราว ลองใหม่ภายหลัง':'เปิดโฟลเดอร์ความรู้ไม่ได้ ('+r.status+') ตรวจชื่อ owner/repo/path และต้องเป็น repo สาธารณะ');
+    const files=(await r.json()).filter(f=>f.type==='file'&&/\.(txt|md|xlsx|xls)$/i.test(f.name));
+    setSys('loading','พบ '+files.length+' ไฟล์ กำลังโหลดเนื้อหา…',2);
+    let done=0,bad=0;
+    await Promise.all(files.map(async f=>{
+      try{
+        let text;
+        if(/\.(xlsx|xls)$/i.test(f.name)){
+          await loadXlsx();
+          const wb=XLSX.read(await (await fetch(f.download_url)).arrayBuffer(),{type:'array'});
+          text=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}).map(row=>Object.entries(row).filter(([,v])=>String(v).trim()!=='').map(([k,v])=>k+': '+v).join('\n')).filter(Boolean).join('\n\n');
+        } else text=await (await fetch(f.download_url)).text();
+        docs.push({name:f.name,url:f.html_url,text});
+      }catch(e){bad++;}
+      done++; setSys('loading','กำลังโหลดเนื้อหา '+done+'/'+files.length+'…',3);
+    }));
+    state='ready';
+    setSys('ok','พร้อมค้นหา · คลังความรู้ '+docs.length+' ไฟล์'+(bad?' (โหลดไม่สำเร็จ '+bad+' ไฟล์)':''),4);
+  }catch(e){
+    state='error'; setSys('error','โหลดคลังความรู้ไม่สำเร็จ',0); showErr(e.message||String(e));
   }
+}
 
-  function linkify(escapedText) {
-    return escapedText.replace(/(https?:\/\/[^\s<]+)/g, url =>
-      `<a href="${url}" target="_blank" rel="noopener">${url}</a>`
-    );
-  }
-
-  async function loadKnowledge() {
-    try {
-      const listUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${KNOWLEDGE_PATH}`;
-      const listRes = await fetch(listUrl);
-      if (!listRes.ok) throw new Error('เปิดโฟลเดอร์ความรู้ไม่ได้ (ตรวจสอบชื่อ owner/repo/path)');
-      const files = await listRes.json();
-      const knowledgeFiles = files.filter(f => f.type === 'file' && /\.(txt|md|xlsx|xls)$/i.test(f.name));
-
-      statusEl.textContent = `กำลังเตรียมข้อมูล...`;
-
-      let loaded = 0;
-      for (const f of knowledgeFiles) {
-        try {
-          if (/\.(xlsx|xls)$/i.test(f.name)) {
-            if (typeof XLSX === 'undefined') {
-              console.warn('ข้ามไฟล์ ' + f.name + ': ไลบรารีอ่าน Excel ยังโหลดไม่เสร็จหรือถูกบล็อก');
-            } else {
-              const buf = await (await fetch(f.download_url)).arrayBuffer();
-              const workbook = XLSX.read(buf, { type: 'array' });
-              const sheet = workbook.Sheets[workbook.SheetNames[0]];
-              const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-              const blocks = rows.map(row =>
-                Object.entries(row)
-                  .filter(([, v]) => String(v).trim() !== '')
-                  .map(([k, v]) => `${k}: ${v}`)
-                  .join('\n')
-              ).filter(Boolean);
-              docs.push({ name: f.name, url: f.html_url, text: blocks.join('\n\n') });
-            }
-          } else {
-            const text = await (await fetch(f.download_url)).text();
-            docs.push({ name: f.name, url: f.html_url, text });
-          }
-        } catch (fileErr) {
-          console.warn('โหลดไฟล์ไม่สำเร็จ: ' + f.name, fileErr);
-        }
-        loaded++;
-      }
-
-      statusEl.textContent = `พร้อมค้นหา`;
-      knowledgeReady = true;
-      resultsEl.innerHTML = '<div class="empty">พิมพ์คำสำคัญด้านบนแล้วกดค้นหา ระบบจะแสดงย่อหน้าจากไฟล์ความรู้ที่มีคำนั้นปรากฏอยู่ พร้อมลิงก์เปิดไฟล์ต้นฉบับใน GitHub</div>';
-    } catch (err) {
-      statusEl.textContent = 'โหลดเอกสารความรู้ไม่สำเร็จ: ' + err.message;
-    }
-  }
-
-  // สร้างชุด n-gram (กลุ่มตัวอักษร n ตัวติดกัน) จากข้อความ โดยตัดช่องว่างออกก่อน
-  // วิธีนี้ไม่ต้องพึ่งการตัดคำด้วยช่องว่าง จึงใช้ได้ดีกับประโยคภาษาไทยที่พิมพ์ติดกันไม่มีช่องว่างคั่นคำ
-  function ngramSet(text, n) {
-    const clean = text.replace(/\s+/g, '');
-    const grams = new Set();
-    for (let i = 0; i <= clean.length - n; i++) {
-      grams.add(clean.slice(i, i + n));
-    }
-    return grams;
-  }
-
-  function overlapScore(aGrams, bGrams) {
-    let score = 0;
-    aGrams.forEach(g => { if (bGrams.has(g)) score++; });
-    return score;
-  }
-
-  function searchDocs(question) {
-    const q = question.trim();
-    if (q.length < 2) return [];
-
-    const n = q.replace(/\s+/g, '').length <= 6 ? 2 : 5; // คำถามสั้นใช้ n เล็กลง / คำถามยาวใช้ n ใหญ่ขึ้นเพื่อความจำเพาะเจาะจง
-    const qGrams = ngramSet(q, n);
-    if (qGrams.size === 0) return [];
-
-    // เกณฑ์คือ "สัดส่วน" ของคำค้นที่ต้องพบในย่อหน้านั้น ไม่ใช่แค่นับจำนวนแบบเดิม
-    // ทำให้ย่อหน้าที่คล้ายกันแค่ผิวเผินหลุดออกไป เหลือแต่ย่อหน้าที่ตรงกับคำถามจริง ๆ
-    const minRatio = n === 2 ? 0.5 : 0.35;
-
-    const results = [];
-    docs.forEach(doc => {
-      // รวมบรรทัดสั้น ๆ ที่ติดกัน (ไม่มีบรรทัดว่างคั่น) ให้เป็นย่อหน้าเดียว ป้องกันการตัดย่อหน้าถี่เกินไป
-      const rawParagraphs = doc.text.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-      const paragraphs = [];
-      let buffer = '';
-      rawParagraphs.forEach(p => {
-        buffer = buffer ? buffer + '\n' + p : p;
-        if (buffer.replace(/\s+/g, '').length >= 40) {
-          paragraphs.push(buffer);
-          buffer = '';
-        }
-      });
-      if (buffer) paragraphs.push(buffer);
-
-      const scored = paragraphs
-        .map(p => {
-          const score = overlapScore(qGrams, ngramSet(p, n));
-          return { text: p, score, ratio: score / qGrams.size };
-        })
-        .filter(p => p.ratio >= minRatio)
-        .sort((a, b) => b.score - a.score);
-
-      if (scored.length > 0) {
-        results.push({
-          name: doc.name,
-          url: doc.url,
-          excerpts: scored.slice(0, 12).map(p => p.text), // เพดานกันเอกสารเดียวมีย่อหน้ามากเกินไป
-          matchCount: scored.reduce((sum, p) => sum + p.score, 0)
-        });
-      }
-    });
-
-    results.sort((a, b) => b.matchCount - a.matchCount);
-    return results; // ไม่ตัดจำนวนเอกสารแล้ว ให้ renderResults จัดการแสดงทีละส่วนแทน
-  }
-
-  const INITIAL_DOCS = 4;
-  const DOCS_STEP = 4;
-  const INITIAL_EXCERPTS = 3;
-
-  function renderCard(r) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    const displayName = r.name.replace(/\.(txt|md|xlsx|xls)$/i, '');
-
-    function draw(shownCount) {
-      let html = `<h3>${escapeHtml(displayName)}</h3>` +
-        `<div class="count">คะแนนความเกี่ยวข้อง ${r.matchCount}</div>`;
-      r.excerpts.slice(0, shownCount).forEach(ex => {
-        html += `<div class="excerpt">${linkify(escapeHtml(ex))}</div>`;
-      });
-      if (r.excerpts.length > shownCount) {
-        html += `<button type="button" class="morebtn" data-more-excerpt>แสดงย่อหน้าเพิ่มเติมในไฟล์นี้ (+${r.excerpts.length - shownCount})</button>`;
-      }
-      card.innerHTML = html;
-      const moreBtn = card.querySelector('[data-more-excerpt]');
-      if (moreBtn) moreBtn.addEventListener('click', () => draw(r.excerpts.length));
-    }
-
-    draw(INITIAL_EXCERPTS);
-    return card;
-  }
-
-  function renderResults(list) {
-    resultsEl.innerHTML = '';
-    if (!list || list.length === 0) {
-      resultsEl.innerHTML = '<div class="empty">ไม่พบคำที่ค้นหาในเอกสารความรู้ ลองใช้คำอื่น หรือเพิ่มไฟล์ความรู้ที่เกี่ยวข้องเข้า repository</div>';
-      return;
-    }
-
-    function draw(shownCount) {
-      resultsEl.innerHTML = '';
-      list.slice(0, shownCount).forEach(r => resultsEl.appendChild(renderCard(r)));
-      if (list.length > shownCount) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'morebtn morebtn-main';
-        btn.textContent = `แสดงผลลัพธ์เพิ่มเติม (+${Math.min(DOCS_STEP, list.length - shownCount)})`;
-        btn.addEventListener('click', () => draw(shownCount + DOCS_STEP));
-        resultsEl.appendChild(btn);
-      }
-    }
-
-    draw(INITIAL_DOCS);
-  }
-
-  function handleSearch() {
-    const q = input.value.trim();
-    if (!q) return;
-    if (!knowledgeReady) {
-      statusEl.textContent = 'กำลังโหลดเอกสารความรู้อยู่ กรุณารอสักครู่แล้วลองอีกครั้ง...';
-      return;
-    }
-    searchBtn.disabled = true;
-    renderResults(searchDocs(q));
-    searchBtn.disabled = false;
-  }
-
-  const resetBtn = document.getElementById('resetBtn');
-
-  function handleReset() {
-    input.value = '';
-    resultsEl.innerHTML = '<div class="empty">พิมพ์คำสำคัญด้านบนแล้วกดค้นหา ระบบจะแสดงย่อหน้าจากไฟล์ความรู้ที่มีคำนั้นปรากฏอยู่ พร้อมลิงก์เปิดไฟล์ต้นฉบับใน GitHub</div>';
-    input.focus();
-  }
-
-  searchBtn.addEventListener('click', handleSearch);
-  resetBtn.addEventListener('click', handleReset);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSearch(); });
-
-  loadKnowledge();
-
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(err => console.warn('ลงทะเบียน Service Worker ไม่สำเร็จ:', err));
-  }
+/* ---------- ค้นหา ---------- */
+function grams(t,n){const c=t.replace(/\s+/g,''),g=new Set();for(let i=0;i<=c.length-n;i++)g.add(c.slice(i,i+n));return g;}
+function search(q){
+  const n=q.replace(/\s+/g,'').length<=6?2:4, qg=[...grams(q,n)];
+  if(!qg.length) return [];
+  const min=Math.max(2,Math.ceil(qg.length*0.25)), out=[];
+  docs.forEach(d=>{
+    const raw=d.text.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean), paras=[]; let buf='';
+    raw.forEach(p=>{buf=buf?buf+'\n'+p:p; if(buf.replace(/\s+/g,'').length>=40){paras.push(buf);buf='';}});
+    if(buf) paras.push(buf);
+    const sc=paras.map(p=>{const g=grams(p,n);let s=0;qg.forEach(k=>{if(g.has(k))s++;});return{t:p,s};}).filter(x=>x.s>=min).sort((a,b)=>b.s-a.s);
+    if(sc.length) out.push({name:d.name.replace(/\.(txt|md|xlsx|xls)$/i,''),url:d.url,ex:sc.slice(0,12).map(x=>x.t),score:sc.reduce((a,x)=>a+x.s,0)});
+  });
+  return out.sort((a,b)=>b.score-a.score);
+}
+function hl(text,q){
+  let h=esc(text);
+  q.split(/\s+/).filter(w=>w.length>=2).forEach(w=>{const e=esc(w).replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); h=h.replace(new RegExp('('+e+')(?![^<]*>)','gi'),'<mark>$1</mark>');});
+  return h.replace(/(https?:\/\/[^\s<"]+)/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+}
+function draw(){
+  const L=last; if(!L) return;
+  if(!L.list.length){ $('res').innerHTML=`<div class="empty"><div class="ic">🔍</div>ไม่พบ “${esc(L.q)}” ลองใช้คำอื่นหรือคำที่สั้นลง</div>`; return; }
+  let h='';
+  L.list.slice(0,L.shown).forEach((f,i)=>{
+    h+=`<article class="hit"><h3><span>${esc(f.name)}</span><span class="src">ไฟล์ความรู้</span></h3><div class="score">คะแนนความเกี่ยวข้อง ${f.score} · ${f.ex.length} ย่อหน้า</div>`;
+    f.ex.slice(0,f.open?f.ex.length:3).forEach(t=>h+=`<div class="excerpt">${hl(t,L.q)}</div>`);
+    h+='<div class="acts">'+(f.ex.length>3&&!f.open?`<button class="btn" type="button" data-a="open" data-i="${i}">แสดงอีก ${f.ex.length-3} ย่อหน้า</button>`:'')+
+      `<a class="btn" href="${esc(f.url)}" target="_blank" rel="noopener">เปิดไฟล์ต้นฉบับ</a><button class="btn" type="button" data-a="copy" data-i="${i}">คัดลอกข้อความ</button></div></article>`;
+  });
+  if(L.list.length>L.shown) h+=`<button class="btn more" type="button" data-a="more">แสดงผลเพิ่ม (+${Math.min(4,L.list.length-L.shown)})</button>`;
+  $('res').innerHTML=`<p class="score">พบ ${L.list.length} ไฟล์ที่เกี่ยวข้อง</p>`+h;
+}
+$('res').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-a]'); if(!b) return; const a=b.dataset.a,i=+b.dataset.i;
+  if(a==='open'){last.list[i].open=1;draw();}
+  else if(a==='more'){last.shown+=4;draw();}
+  else if(a==='copy'){const f=last.list[i],t=f.ex.slice(0,3).join('\n\n')+'\n\n— '+f.name+' '+f.url;
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{b.textContent='คัดลอกแล้ว ✓';},()=>{b.textContent='คัดลอกไม่ได้';});}
+});
+function go(){
+  const q=$('q').value.trim();
+  if(q.length<2){ $('res').innerHTML='<div class="empty">พิมพ์อย่างน้อย 2 ตัวอักษร</div>'; return; }
+  if(state==='loading'){ setSys('loading','ยังโหลดคลังความรู้อยู่ กรุณารอสักครู่แล้วกดค้นหาอีกครั้ง…',2); return; }
+  if(state==='error'){ $('res').innerHTML='<div class="empty">ยังค้นหาไม่ได้ เพราะโหลดคลังความรู้ไม่สำเร็จ ลองรีเฟรชหน้า</div>'; return; }
+  $('go').disabled=true; const list=search(q); last={q,list,shown:4}; draw(); $('go').disabled=false;
+  setSys('ok','พร้อมค้นหา · พบ '+list.length+' ไฟล์สำหรับ “'+q+'”',4);
+}
+$('form').addEventListener('submit',e=>{e.preventDefault();go();});
+$('chips').innerHTML=CHIPS.map(c=>`<button type="button">${esc(c)}</button>`).join('');
+$('chips').addEventListener('click',e=>{const b=e.target.closest('button');if(b){$('q').value=b.textContent;go();}});
+loadKnowledge();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
