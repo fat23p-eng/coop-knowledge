@@ -52,6 +52,9 @@ main{max-width:820px;margin:-52px auto 0;padding:0 16px 24px;position:relative}
 input[type=search]{flex:1;min-width:0;font:inherit;font-size:17px;padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}
 input[type=search]:focus{outline:none;border-color:var(--primary)}
 .go{border:0;background:var(--primary);color:var(--on-primary);border-radius:10px;padding:0 22px;font:inherit;font-weight:700;cursor:pointer;min-height:48px;min-width:96px}
+.clear{border:2px solid var(--line);background:var(--surface);color:var(--text);border-radius:10px;padding:0 16px;font:inherit;cursor:pointer;min-height:48px;white-space:nowrap}
+.clear:hover{border-color:var(--primary);color:var(--primary)}
+.btn.sm{min-height:30px;padding:2px 10px;font-size:13px}
 .go:disabled{opacity:.6;cursor:default}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 .chips button{border:1px solid var(--line);background:var(--surface);color:var(--on-soft);border-radius:999px;padding:3px 12px;font:inherit;font-size:14px;cursor:pointer}
@@ -92,7 +95,7 @@ dialog h2{margin:0 0 10px;font-size:18px}
 .pick button.on{border-color:var(--primary);background:var(--soft);color:var(--on-soft)}
 .pick .sw{width:30px;height:30px;padding:0;border-radius:50%}
 .pick .sw.on{box-shadow:0 0 0 3px var(--soft),0 0 0 5px var(--primary)}
-@media(max-width:480px){.row{flex-direction:column}.go{width:100%}h1{font-size:17px}.hero-in{flex-direction:column}}
+@media(max-width:480px){.row{flex-direction:column}.go,.clear{width:100%}h1{font-size:17px}.hero-in{flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.sysbar .dot{animation:none}}
 </style>
 </head>
@@ -113,12 +116,14 @@ dialog h2{margin:0 0 10px;font-size:18px}
     <div class="row">
       <input type="search" id="q" placeholder="เช่น ค่าชดเชย เลิกจ้าง · ประชุมใหญ่ · มาตรา 62" aria-label="คำค้น" autocomplete="off" enterkeyhint="search">
       <button class="go" id="go" type="submit">ค้นหา</button>
+      <button class="clear" id="clr" type="button">ล้างการค้นหา</button>
     </div>
     <div class="chips" id="chips" aria-label="คำค้นแนะนำ"></div>
   </form>
 
   <div class="sysbar" id="sysbar" data-s="loading" role="status" aria-live="polite">
     <span class="dot"></span><span id="sysText">กำลังเชื่อมต่อคลังความรู้…</span>
+    <button class="btn sm" id="reload" type="button" title="ดึงไฟล์จาก GitHub ใหม่ เมื่อเพิ่ม/แก้ไฟล์ใน repo">↻ โหลดคลังความรู้ใหม่</button>
     <div class="steps"><span id="s1">เชื่อมต่อ</span><span id="s2">อ่านรายชื่อไฟล์</span><span id="s3">โหลดเนื้อหา</span><span id="s4">พร้อมค้นหา</span></div>
   </div>
   <div id="err" class="err" hidden></div>
@@ -290,6 +295,8 @@ function go(){
 $('form').addEventListener('submit',e=>{e.preventDefault();go();});
 $('chips').innerHTML=CHIPS.map(c=>`<button type="button">${esc(c)}</button>`).join('');
 $('chips').addEventListener('click',e=>{const b=e.target.closest('button');if(b){$('q').value=b.textContent;go();}});
+$('clr').onclick=()=>{ $('q').value=''; last=null; $('res').innerHTML='<div class="empty"><div class="ic">📚</div>พิมพ์คำสำคัญแล้วกดค้นหา</div>'; if(state==='ready') setSys('ok','พร้อมค้นหา · คลังความรู้ '+docs.length+' ไฟล์',4); $('q').focus(); };
+$('reload').onclick=()=>{ if(state==='loading') return; docs=[]; last=null; state='loading'; showErr(''); $('res').innerHTML='<div class="empty"><div class="ic">📚</div>พิมพ์คำสำคัญแล้วกดค้นหา</div>'; loadKnowledge(); };
 loadKnowledge();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
